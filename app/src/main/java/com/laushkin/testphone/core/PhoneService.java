@@ -178,6 +178,11 @@ public class PhoneService extends Service implements Communicator.MessageHandler
         }
     }
 
+    public void exit() {
+        mPhoneApp.exit();
+        stopSelf();
+    }
+
     private void sendEvent(int id) {
         sendEvent(id, null);
     }
@@ -212,6 +217,8 @@ public class PhoneService extends Service implements Communicator.MessageHandler
             case Command.CALL_DECLINE:
                 handleCallDecline(from, msg.getData());
                 return;
+            case Command.EXIT:
+                handleExit(from, msg.getData());
         }
     }
 
@@ -247,6 +254,10 @@ public class PhoneService extends Service implements Communicator.MessageHandler
 
     private void handleCallDecline(String from, Bundle data) {
         declineCall();
+    }
+
+    private void handleExit(String from, Bundle data) {
+        exit();
     }
 
     @Override
@@ -285,7 +296,19 @@ public class PhoneService extends Service implements Communicator.MessageHandler
             return;
         }
 
-        sendEvent(Event.INCOMING_CALL);
+        CallInfo ci;
+        try {
+            ci = call.getInfo();
+        } catch (Exception e) {
+            e.printStackTrace();
+            return;
+        }
+
+        String remoteUri = ci.getRemoteUri();
+
+        sendEvent(Event.INCOMING_CALL, BundleTool.newBundle()
+                .withString(EventCommandBase.Extra.REMOTE_URI, remoteUri)
+                .build());
     }
 
     @Override
@@ -316,7 +339,7 @@ public class PhoneService extends Service implements Communicator.MessageHandler
 
     @Override
     public void notifyCallMediaState(PhoneCall call) {
-        sendEvent(Event.CALL_MEDIA_STATE);
+        // do nothing
     }
 
     @Override
@@ -381,6 +404,7 @@ public class PhoneService extends Service implements Communicator.MessageHandler
         int CALL_TO = 1002;
         int CALL_ACCEPT = 1003;
         int CALL_DECLINE = 1004;
+        int EXIT = 1005;
     }
 
     // outgoing messages

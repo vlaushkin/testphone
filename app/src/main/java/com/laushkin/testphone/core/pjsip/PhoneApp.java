@@ -291,6 +291,10 @@ public class PhoneApp {
         ep = null;
     }
 
+    public void exit() {
+        deinit();
+    }
+
     class LogWriter extends org.pjsip.pjsua2.LogWriter {
         @Override
         public void write(LogEntry entry) {
