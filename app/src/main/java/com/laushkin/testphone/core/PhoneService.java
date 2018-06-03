@@ -14,6 +14,7 @@ import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.laushkin.testphone.core.pjsip.PhoneAccount;
 import com.laushkin.testphone.core.pjsip.PhoneApp;
@@ -33,6 +34,7 @@ import java.util.LinkedList;
 
 public class PhoneService extends Service implements Communicator.MessageHandler, PhoneEventListener {
     public static final String COMMUNICATOR_NAME = "SuperPhoneServiceEver";
+    private static final String TAG = "PhoneService";
 
     static {
         System.loadLibrary("pjsua2");
@@ -228,6 +230,12 @@ public class PhoneService extends Service implements Communicator.MessageHandler
         String proxy = data.getString(EventCommandBase.Extra.PROXY);
         String username = data.getString(EventCommandBase.Extra.USERNAME);
         String password = data.getString(EventCommandBase.Extra.PASSWORD);
+
+        Log.d(TAG, "id: " + id);
+        Log.d(TAG, "registrar: " + registrar);
+        Log.d(TAG, "proxy: " + proxy);
+        Log.d(TAG, "username: " + username);
+        Log.d(TAG, "password: " + password);
 
         if (TextUtils.isEmpty(id) ||
                 TextUtils.isEmpty(registrar) ||
