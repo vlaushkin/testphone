@@ -55,22 +55,19 @@ public class Communicator {
 
     private String mAction;
 
-    private InternalHandler publicHandler;
-    private InternalHandler privateHandler;
-
     public Communicator(final MessageHandler handler, final String selfName) {
         this(handler, selfName, false);
     }
 
     public Communicator(final MessageHandler handler, final String selfName, final boolean external) {
-        publicHandler = new InternalHandler(new OnMessageListener() {
+        InternalHandler publicHandler = new InternalHandler(new OnMessageListener() {
             @Override
             public void onMessage(Message msg) {
                 handler.handleMessage(getNode(msg).name(), msg);
             }
         });
 
-        privateHandler = new InternalHandler(new OnMessageListener() {
+        InternalHandler privateHandler = new InternalHandler(new OnMessageListener() {
             @Override
             public void onMessage(Message msg) {
                 handleInternalMessage(msg);
@@ -243,6 +240,10 @@ public class Communicator {
         }
 
         mHandler.onNewConnection(node.name());
+    }
+
+    public boolean isConnected() {
+        return mIsConnected;
     }
 
     public interface MessageHandler {
