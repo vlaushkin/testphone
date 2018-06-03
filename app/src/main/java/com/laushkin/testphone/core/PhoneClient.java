@@ -5,7 +5,6 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.RemoteException;
 import android.text.TextUtils;
-import android.util.Log;
 
 /**
  * @author Vasily Laushkin <vaslinux@gmail.com> on 27/05/2018.
@@ -17,8 +16,7 @@ public class PhoneClient implements Communicator.MessageHandler {
 
     public PhoneClient(String name) {
         String communicatorName = (!TextUtils.isEmpty(name))?name:generateName();
-
-        mCommunicator = new Communicator(this, name);
+        mCommunicator = new Communicator(this, communicatorName);
     }
 
     public void connect(Context context) {
@@ -151,7 +149,6 @@ public class PhoneClient implements Communicator.MessageHandler {
 
     @Override
     public void onNewConnection(String from) {
-        Log.d("PhoneService", "onNewConnection: " + from);
         if (mConnectionListener != null && PhoneService.COMMUNICATOR_NAME.equals(from)) {
             mConnectionListener.connected();
         }

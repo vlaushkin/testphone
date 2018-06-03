@@ -19,14 +19,14 @@ public class PhoneAccount extends Account {
 
     @Override
     public void onRegState(OnRegStateParam prm) {
-        app.eventListener.notifyRegState(prm.getCode(), prm.getReason(),
+        app.mEventListener.notifyRegState(prm.getCode(), prm.getReason(),
                 prm.getExpiration());
     }
 
     @Override
     public void onIncomingCall(OnIncomingCallParam prm) {
         PhoneCall call = new PhoneCall(this, prm.getCallId(), app);
-        app.eventListener.notifyIncomingCall(call);
+        app.mEventListener.notifyIncomingCall(call);
     }
 
 

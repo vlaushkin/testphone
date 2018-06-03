@@ -8,13 +8,11 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.RemoteException;
 import android.support.annotation.Nullable;
 import android.text.TextUtils;
-import android.util.Log;
 
 import com.laushkin.testphone.core.pjsip.PhoneAccount;
 import com.laushkin.testphone.core.pjsip.PhoneApp;
@@ -41,18 +39,16 @@ public class PhoneService extends Service implements Communicator.MessageHandler
     }
 
     private Communicator mCommunicator;
-    private Handler mHandler;
     private LinkedList<String> mRoster;
     private PhoneApp mPhoneApp;
 
-    public PhoneCall currentCall = null;
-    public PhoneAccount account = null;
-    public AccountConfig accCfg = null;
+    public PhoneCall mCurrentCall = null;
+    public PhoneAccount mAccount = null;
+    public AccountConfig mAccCfg = null;
 
     private NetworkBroadcastReceiver mNetworkReceiver;
 
-    public PhoneService() {
-    }
+    public PhoneService() {}
 
     @Nullable
     @Override
@@ -68,7 +64,6 @@ public class PhoneService extends Service implements Communicator.MessageHandler
     public void onCreate() {
         mCommunicator = new Communicator(this, COMMUNICATOR_NAME, false);
         mRoster = new LinkedList<>();
-        mHandler = new Handler();
 
         mCommunicator.connect(getContext());
 
@@ -100,49 +95,48 @@ public class PhoneService extends Service implements Communicator.MessageHandler
     private void init() {
         mPhoneApp.init(this, getFilesDir().getAbsolutePath());
 
-        if (mPhoneApp.accList.size() == 0) {
-            accCfg = new AccountConfig();
-            accCfg.setIdUri("sip:localhost");
-            accCfg.getNatConfig().setIceEnabled(true);
-            accCfg.getVideoConfig().setAutoTransmitOutgoing(true);
-            accCfg.getVideoConfig().setAutoShowIncoming(true);
-            account = mPhoneApp.addAcc(accCfg);
+        if (mPhoneApp.mAccList.size() == 0) {
+            mAccCfg = new AccountConfig();
+            mAccCfg.setIdUri("sip:localhost");
+            mAccCfg.getNatConfig().setIceEnabled(true);
+            mAccCfg.getVideoConfig().setAutoTransmitOutgoing(true);
+            mAccCfg.getVideoConfig().setAutoShowIncoming(true);
+            mAccount = mPhoneApp.addAcc(mAccCfg);
         } else {
-            account = mPhoneApp.accList.get(0);
-            accCfg = account.config;
+            mAccount = mPhoneApp.mAccList.get(0);
+            mAccCfg = mAccount.config;
         }
 
 
     }
 
     public void register(String id, String registrar, String proxy, String username, String password) {
-        accCfg.setIdUri(id);
-        accCfg.getRegConfig().setRegistrarUri(registrar);
-        AuthCredInfoVector creds = accCfg.getSipConfig().
+        mAccCfg.setIdUri(id);
+        mAccCfg.getRegConfig().setRegistrarUri(registrar);
+        AuthCredInfoVector creds = mAccCfg.getSipConfig().
                 getAuthCreds();
         creds.clear();
         if (username.length() != 0) {
             creds.add(new AuthCredInfo("Digest", "*", username, 0,
                     password));
         }
-        StringVector proxies = accCfg.getSipConfig().getProxies();
+        StringVector proxies = mAccCfg.getSipConfig().getProxies();
         proxies.clear();
         if (proxy.length() != 0) {
             proxies.add(proxy);
         }
 
-        accCfg.getNatConfig().setIceEnabled(true);
+        mAccCfg.getNatConfig().setIceEnabled(true);
 
         try {
-            account.modify(accCfg);
+            mAccount.modify(mAccCfg);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void makeCall(String uri) {
-        Log.d(TAG, "makeCall: " + uri);
-        PhoneCall call = new PhoneCall(account, -1, mPhoneApp);
+        PhoneCall call = new PhoneCall(mAccount, -1, mPhoneApp);
         CallOpParam prm = new CallOpParam(true);
 
         try {
@@ -153,29 +147,29 @@ public class PhoneService extends Service implements Communicator.MessageHandler
             return;
         }
 
-        currentCall = call;
+        mCurrentCall = call;
         sendEvent(Event.CALL_INIT);
     }
 
     public void acceptCall() {
-        if (currentCall == null) return;
+        if (mCurrentCall == null) return;
 
         CallOpParam prm = new CallOpParam();
         prm.setStatusCode(pjsip_status_code.PJSIP_SC_OK);
         try {
-            currentCall.answer(prm);
+            mCurrentCall.answer(prm);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void declineCall() {
-        if (currentCall == null) return;
+        if (mCurrentCall == null) return;
 
         CallOpParam prm = new CallOpParam();
         prm.setStatusCode(pjsip_status_code.PJSIP_SC_DECLINE);
         try {
-            currentCall.hangup(prm);
+            mCurrentCall.hangup(prm);
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -288,7 +282,7 @@ public class PhoneService extends Service implements Communicator.MessageHandler
 
     @Override
     public void notifyIncomingCall(PhoneCall call) {
-        currentCall = call;
+        mCurrentCall = call;
 
         CallOpParam prm = new CallOpParam();
         prm.setStatusCode(pjsip_status_code.PJSIP_SC_RINGING);
@@ -336,7 +330,7 @@ public class PhoneService extends Service implements Communicator.MessageHandler
 
         if (ci.getState() == pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED) {
             call.delete();
-            currentCall = null;
+            mCurrentCall = null;
         }
     }
 

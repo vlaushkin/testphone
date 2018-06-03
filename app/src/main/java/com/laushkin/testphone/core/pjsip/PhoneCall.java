@@ -30,7 +30,7 @@ public class PhoneCall extends Call {
             CallInfo ci = getInfo();
             if (ci.getState() ==
                     pjsip_inv_state.PJSIP_INV_STATE_DISCONNECTED) {
-                app.ep.utilLogWrite(3, "MyCall", this.dump(true, ""));
+                app.mEndPoint.utilLogWrite(3, "MyCall", this.dump(true, ""));
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -39,7 +39,7 @@ public class PhoneCall extends Call {
         // Should not delete this call instance (self) in this context,
         // so the observer should manage this call instance deletion
         // out of this callback context.
-        app.eventListener.notifyCallState(this);
+        app.mEventListener.notifyCallState(this);
     }
 
 
@@ -69,9 +69,9 @@ public class PhoneCall extends Call {
 
                 // connect ports
                 try {
-                    app.ep.audDevManager().getCaptureDevMedia().
+                    app.mEndPoint.audDevManager().getCaptureDevMedia().
                             startTransmit(am);
-                    am.startTransmit(app.ep.audDevManager().
+                    am.startTransmit(app.mEndPoint.audDevManager().
                             getPlaybackDevMedia());
                 } catch (Exception e) {
                     continue;
@@ -85,6 +85,6 @@ public class PhoneCall extends Call {
             }
         }
 
-        app.eventListener.notifyCallMediaState(this);
+        app.mEventListener.notifyCallMediaState(this);
     }
 }

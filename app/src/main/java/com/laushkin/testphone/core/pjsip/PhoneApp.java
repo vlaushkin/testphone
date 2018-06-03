@@ -23,42 +23,38 @@ import java.util.ArrayList;
  */
 public class PhoneApp {
     private static final String TAG = "PhoneApp";
+    private static final int SIP_PORT  = 6000;
+    private static final int LOG_LEVEL = 4;
 
     static {
         System.loadLibrary("pjsua2");
     }
 
-    public Endpoint ep = new Endpoint();
-    public PhoneEventListener eventListener;
-    public ArrayList<PhoneAccount> accList = new ArrayList<>();
+    public Endpoint mEndPoint = new Endpoint();
+    public PhoneEventListener mEventListener;
+    public ArrayList<PhoneAccount> mAccList = new ArrayList<>();
 
-    private ArrayList<PhoneAccountConfig> accCfgs =
+    private ArrayList<PhoneAccountConfig> mAccCfgs =
             new ArrayList<>();
-    private EpConfig epConfig = new EpConfig();
-    private TransportConfig sipTpConfig = new TransportConfig();
-    private String appDir;
-
-    /* Maintain reference to log writer to avoid premature cleanup by GC */
-    private LogWriter logWriter;
+    private EpConfig mEpConfig = new EpConfig();
+    private TransportConfig mSipTpConfig = new TransportConfig();
+    private String mAppDir;
 
     private final String configName = "pjsua2.json";
-    private final int SIP_PORT  = 6000;
-    private final int LOG_LEVEL = 4;
+    private LogWriter mLogWriter;
 
-    public void init(PhoneEventListener obs, String app_dir)
-    {
+    public void init(PhoneEventListener obs, String app_dir) {
         init(obs, app_dir, false);
     }
 
     public void init(PhoneEventListener obs, String app_dir,
-                     boolean own_worker_thread)
-    {
-        eventListener = obs;
-        appDir = app_dir;
+                     boolean own_worker_thread) {
+        mEventListener = obs;
+        mAppDir = app_dir;
 
         /* Create endpoint */
         try {
-            ep.libCreate();
+            mEndPoint.libCreate();
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -66,39 +62,30 @@ public class PhoneApp {
 
 
         /* Load config */
-        String configPath = appDir + "/" + configName;
+        String configPath = mAppDir + "/" + configName;
         File f = new File(configPath);
         if (f.exists()) {
             loadConfig(configPath);
         } else {
             /* Set 'default' values */
-            sipTpConfig.setPort(SIP_PORT);
+            mSipTpConfig.setPort(SIP_PORT);
         }
 
         /* Override log level setting */
-        epConfig.getLogConfig().setLevel(LOG_LEVEL);
-        epConfig.getLogConfig().setConsoleLevel(LOG_LEVEL);
+        mEpConfig.getLogConfig().setLevel(LOG_LEVEL);
+        mEpConfig.getLogConfig().setConsoleLevel(LOG_LEVEL);
 
         /* Set log config. */
-        LogConfig log_cfg = epConfig.getLogConfig();
-        logWriter = new LogWriter();
-        log_cfg.setWriter(logWriter);
+        LogConfig log_cfg = mEpConfig.getLogConfig();
+        mLogWriter = new LogWriter();
+        log_cfg.setWriter(mLogWriter);
         log_cfg.setDecor(log_cfg.getDecor() &
                 ~(pj_log_decoration.PJ_LOG_HAS_CR.swigValue() |
                         pj_log_decoration.PJ_LOG_HAS_NEWLINE.swigValue()));
 
-        /* Write log to file (just uncomment whenever needed) */
-        //String log_path = android.os.Environment.getExternalStorageDirectory().toString();
-        //log_cfg.setFilename(log_path + "/pjsip.log");
-
         /* Set ua config. */
-        UaConfig ua_cfg = epConfig.getUaConfig();
-        ua_cfg.setUserAgent("Pjsua2 Android " + ep.libVersion().getFull());
-
-        /* STUN server. */
-        //StringVector stun_servers = new StringVector();
-        //stun_servers.add("stun.pjsip.org");
-        //ua_cfg.setStunServer(stun_servers);
+        UaConfig ua_cfg = mEpConfig.getUaConfig();
+        ua_cfg.setUserAgent("Pjsua2 Android " + mEndPoint.libVersion().getFull());
 
         /* No worker thread */
         if (own_worker_thread) {
@@ -108,7 +95,7 @@ public class PhoneApp {
 
         /* Init endpoint */
         try {
-            ep.libInit(epConfig);
+            mEndPoint.libInit(mEpConfig);
         } catch (Exception e) {
             e.printStackTrace();
             return;
@@ -116,20 +103,20 @@ public class PhoneApp {
 
         /* Create transports. */
         try {
-            ep.transportCreate(pjsip_transport_type_e.PJSIP_TRANSPORT_UDP,
-                    sipTpConfig);
+            mEndPoint.transportCreate(pjsip_transport_type_e.PJSIP_TRANSPORT_UDP,
+                    mSipTpConfig);
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         /* Set SIP port back to default for JSON saved config */
-        sipTpConfig.setPort(SIP_PORT);
+        mSipTpConfig.setPort(SIP_PORT);
 
         /* Create accounts. */
-        for (int i = 0; i < accCfgs.size(); i++) {
-            PhoneAccountConfig my_cfg = accCfgs.get(i);
+        for (int i = 0; i < mAccCfgs.size(); i++) {
+            PhoneAccountConfig my_cfg = mAccCfgs.get(i);
 
-            /* Customize account config */
+            /* Customize mAccount config */
             my_cfg.accCfg.getNatConfig().setIceEnabled(true);
             my_cfg.accCfg.getVideoConfig().setAutoTransmitOutgoing(false);
             my_cfg.accCfg.getVideoConfig().setAutoShowIncoming(false);
@@ -141,15 +128,14 @@ public class PhoneApp {
 
         /* Start. */
         try {
-            ep.libStart();
+            mEndPoint.libStart();
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
     }
 
-    public PhoneAccount addAcc(AccountConfig cfg)
-    {
+    public PhoneAccount addAcc(AccountConfig cfg) {
         PhoneAccount acc = new PhoneAccount(cfg, this);
         try {
             acc.create(cfg);
@@ -159,17 +145,16 @@ public class PhoneApp {
             return null;
         }
 
-        accList.add(acc);
+        mAccList.add(acc);
         return acc;
     }
 
     public void delAcc(PhoneAccount acc)
     {
-        accList.remove(acc);
+        mAccList.remove(acc);
     }
 
-    private void loadConfig(String filename)
-    {
+    private void loadConfig(String filename) {
         JsonDocument json = new JsonDocument();
 
         try {
@@ -178,19 +163,19 @@ public class PhoneApp {
             ContainerNode root = json.getRootContainer();
 
             /* Read endpoint config */
-            epConfig.readObject(root);
+            mEpConfig.readObject(root);
 
             /* Read transport config */
             ContainerNode tp_node = root.readContainer("SipTransport");
-            sipTpConfig.readObject(tp_node);
+            mSipTpConfig.readObject(tp_node);
 
-            /* Read account configs */
-            accCfgs.clear();
+            /* Read mAccount configs */
+            mAccCfgs.clear();
             ContainerNode accs_node = root.readArray("accounts");
             while (accs_node.hasUnread()) {
                 PhoneAccountConfig acc_cfg = new PhoneAccountConfig();
                 acc_cfg.readObject(accs_node);
-                accCfgs.add(acc_cfg);
+                mAccCfgs.add(acc_cfg);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -202,37 +187,35 @@ public class PhoneApp {
         json.delete();
     }
 
-    private void buildAccConfigs()
-    {
-        /* Sync accCfgs from accList */
-        accCfgs.clear();
-        for (int i = 0; i < accList.size(); i++) {
-            PhoneAccount acc = accList.get(i);
+    private void buildAccConfigs() {
+        /* Sync mAccCfgs from mAccList */
+        mAccCfgs.clear();
+        for (int i = 0; i < mAccList.size(); i++) {
+            PhoneAccount acc = mAccList.get(i);
             PhoneAccountConfig my_acc_cfg = new PhoneAccountConfig();
             my_acc_cfg.accCfg = acc.config;
 
 
-            accCfgs.add(my_acc_cfg);
+            mAccCfgs.add(my_acc_cfg);
         }
     }
 
-    private void saveConfig(String filename)
-    {
+    private void saveConfig(String filename) {
         JsonDocument json = new JsonDocument();
 
         try {
             /* Write endpoint config */
-            json.writeObject(epConfig);
+            json.writeObject(mEpConfig);
 
             /* Write transport config */
             ContainerNode tp_node = json.writeNewContainer("SipTransport");
-            sipTpConfig.writeObject(tp_node);
+            mSipTpConfig.writeObject(tp_node);
 
-            /* Write account configs */
+            /* Write mAccount configs */
             buildAccConfigs();
             ContainerNode accs_node = json.writeNewArray("accounts");
-            for (int i = 0; i < accCfgs.size(); i++) {
-                accCfgs.get(i).writeObject(accs_node);
+            for (int i = 0; i < mAccCfgs.size(); i++) {
+                mAccCfgs.get(i).writeObject(accs_node);
             }
 
             /* Save file */
@@ -247,21 +230,19 @@ public class PhoneApp {
         json.delete();
     }
 
-    public void handleNetworkChange()
-    {
+    public void handleNetworkChange() {
         try{
             Log.d(TAG,"Network change detected");
             IpChangeParam changeParam = new IpChangeParam();
-            ep.handleIpChange(changeParam);
+            mEndPoint.handleIpChange(changeParam);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
-    public void deinit()
-    {
+    public void deinit() {
         Log.d("dbg", "deinit");
-        String configPath = appDir + "/" + configName;
+        String configPath = mAppDir + "/" + configName;
         saveConfig(configPath);
 
         /* Try force GC to avoid late destroy of PJ objects as they should be
@@ -273,7 +254,7 @@ public class PhoneApp {
          * libDestroy(), so this will be a test of double libDestroy().
          */
         try {
-            ep.libDestroy();
+            mEndPoint.libDestroy();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -281,13 +262,13 @@ public class PhoneApp {
         /* Force delete Endpoint here, to avoid deletion from a non-
          * registered thread (by GC?).
          */
-        ep.delete();
-        ep = null;
+        mEndPoint.delete();
+        mEndPoint = null;
     }
 
     public void exit() {
-        accCfgs.clear();
-        accList.clear();
+        mAccCfgs.clear();
+        mAccList.clear();
         deinit();
 
     }
