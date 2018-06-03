@@ -260,6 +260,7 @@ public class PhoneApp {
 
     public void deinit()
     {
+        Log.d("dbg", "deinit");
         String configPath = appDir + "/" + configName;
         saveConfig(configPath);
 
@@ -285,7 +286,10 @@ public class PhoneApp {
     }
 
     public void exit() {
+        accCfgs.clear();
+        accList.clear();
         deinit();
+
     }
 
     class LogWriter extends org.pjsip.pjsua2.LogWriter {

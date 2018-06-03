@@ -140,7 +140,7 @@ public class CallActivity extends AppCompatActivity implements PhoneClient.Conne
     public void onIncomingCall(String remoteUri) {
         // do nothing
     }
-    
+
     @Override
     public void onCallState(String remoteUri, int state, int role) {
         // хорошо бы сделать собственные обёртки над стейтами.

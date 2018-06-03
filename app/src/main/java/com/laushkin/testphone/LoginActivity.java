@@ -31,7 +31,7 @@ public class LoginActivity extends AppCompatActivity {
 
         Pair<String, String> creds = Utils.getCreds(this);
 
-        if (!getIntent().getAction().equals(ACTION_EDIT)) {
+        if (!ACTION_EDIT.equals(getIntent().getAction())) {
             if (creds != null) {
                 nextStep();
                 return;

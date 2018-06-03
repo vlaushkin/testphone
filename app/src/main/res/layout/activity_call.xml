@@ -34,9 +34,9 @@
         android:orientation="horizontal"
         android:id="@+id/incoming_layout">
 
-        <ImageView
+        <ImageButton
             android:layout_width="wrap_content"
-            android:layout_height="100dp"
+            android:layout_height="wrap_content"
             android:id="@+id/accept"
             android:layout_gravity="center"
             android:padding="20dp"
@@ -48,7 +48,7 @@
             android:layout_height="100dp"
             android:layout_weight="1"/>
 
-        <ImageView
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/decline"
@@ -68,7 +68,7 @@
         android:layout_marginBottom="100dp"
         android:id="@+id/call_controls_layout">
 
-        <ImageView
+        <ImageButton
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/hangup"

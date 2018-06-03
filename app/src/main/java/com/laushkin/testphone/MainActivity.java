@@ -157,6 +157,7 @@ public class MainActivity extends AppCompatActivity implements PhoneClient.Conne
 
         if (id == R.id.action_logout) {
             Utils.clearCreds(this);
+            mPhoneClient.exit();
             startActivity(new Intent(this, LoginActivity.class));
             finish();
             return true;
