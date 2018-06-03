@@ -29,4 +29,8 @@ class Utils {
         if (TextUtils.isEmpty(username) || TextUtils.isEmpty(password)) return null;
         return new Pair<>(username, password);
     }
+
+    public static void clearCreds(Context context) {
+        saveCreds(context, null, null);
+    }
 }
