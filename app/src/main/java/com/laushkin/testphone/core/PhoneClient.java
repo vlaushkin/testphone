@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Message;
 import android.os.RemoteException;
 import android.text.TextUtils;
+import android.util.Log;
 
 /**
  * @author Vasily Laushkin <vaslinux@gmail.com> on 27/05/2018.
@@ -141,6 +142,8 @@ public class PhoneClient implements Communicator.MessageHandler {
         int callState = data.getInt(PhoneService.Event.Extra.CALL_STATE);
         int role = data.getInt(PhoneService.Event.Extra.ROLE);
         String remoteUri = data.getString(PhoneService.Event.Extra.REMOTE_URI);
+
+
         if (mEventListener != null) {
             mEventListener.onCallState(remoteUri, callState, role);
         }
@@ -148,6 +151,7 @@ public class PhoneClient implements Communicator.MessageHandler {
 
     @Override
     public void onNewConnection(String from) {
+        Log.d("PhoneService", "onNewConnection: " + from);
         if (mConnectionListener != null && PhoneService.COMMUNICATOR_NAME.equals(from)) {
             mConnectionListener.connected();
         }

@@ -141,6 +141,7 @@ public class PhoneService extends Service implements Communicator.MessageHandler
     }
 
     public void makeCall(String uri) {
+        Log.d(TAG, "makeCall: " + uri);
         PhoneCall call = new PhoneCall(account, -1, mPhoneApp);
         CallOpParam prm = new CallOpParam(true);
 
@@ -230,12 +231,6 @@ public class PhoneService extends Service implements Communicator.MessageHandler
         String proxy = data.getString(EventCommandBase.Extra.PROXY);
         String username = data.getString(EventCommandBase.Extra.USERNAME);
         String password = data.getString(EventCommandBase.Extra.PASSWORD);
-
-        Log.d(TAG, "id: " + id);
-        Log.d(TAG, "registrar: " + registrar);
-        Log.d(TAG, "proxy: " + proxy);
-        Log.d(TAG, "username: " + username);
-        Log.d(TAG, "password: " + password);
 
         if (TextUtils.isEmpty(id) ||
                 TextUtils.isEmpty(registrar) ||

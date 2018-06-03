@@ -18,4 +18,7 @@
     <string name="call_to">CALL</string>
     <string name="registration_successful">registration successful</string>
     <string name="registration_failed">registration failed</string>
+    <string name="connecting">Connecting...</string>
+    <string name="connected">Connected</string>
+    <string name="incoming">Incoming call</string>
 </resources>

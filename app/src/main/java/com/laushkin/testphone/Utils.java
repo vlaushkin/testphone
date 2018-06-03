@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.text.TextUtils;
 import android.util.Pair;
+import android.view.View;
 
 /**
  * @author Vasily Laushkin <vaslinux@gmail.com> on 03/06/2018.
@@ -32,5 +33,20 @@ class Utils {
 
     public static void clearCreds(Context context) {
         saveCreds(context, null, null);
+    }
+
+    public static void visible(View view) {
+        setVisibility(view, View.VISIBLE);
+    }
+    public static void invisible(View view) {
+        setVisibility(view, View.INVISIBLE);
+    }
+    public static void gone(View view) {
+        setVisibility(view, View.GONE);
+    }
+    public static void setVisibility(View view, int visibility) {
+        if (view == null || view.getVisibility() == visibility)
+            return;
+        view.setVisibility(visibility);
     }
 }

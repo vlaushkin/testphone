@@ -1,5 +1,6 @@
 package com.laushkin.testphone;
 
+import android.Manifest;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -9,15 +10,28 @@ import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.karumi.dexter.Dexter;
+import com.karumi.dexter.PermissionToken;
+import com.karumi.dexter.listener.PermissionDeniedResponse;
+import com.karumi.dexter.listener.PermissionGrantedResponse;
+import com.karumi.dexter.listener.PermissionRequest;
+import com.karumi.dexter.listener.single.PermissionListener;
 import com.laushkin.testphone.core.PhoneClient;
+
+import org.pjsip.pjsua2.pjsip_inv_state;
+import org.pjsip.pjsua2.pjsip_role_e;
 
 public class MainActivity extends AppCompatActivity implements PhoneClient.ConnectionListener, PhoneClient.EventListener {
 
     private static final String TAG = "MainActivity";
+
+    // возможно это стоит вынести куда-нибудь в ресурсы
+    private static final String DOMAIN = "sip.zadarma.com";
+    private static final String SIP_PORT = "5060";
+
     private PhoneClient mPhoneClient;
     private Pair<String, String> mCreds;
     private boolean mRegistration;
@@ -37,15 +51,21 @@ public class MainActivity extends AppCompatActivity implements PhoneClient.Conne
 
         mTvStatus = findViewById(R.id.tvStatus);
         mEdNumber = findViewById(R.id.edNumber);
+
+        findViewById(R.id.button_erase).setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                mEdNumber.setText("");
+                return false;
+            }
+        });
     }
 
     public void onClick(View view) {
         int id = view.getId();
-        Log.d(TAG, "onClick!: " + id);
         String text = mEdNumber.getText().toString();
 
-        if (id == R.id.btErase) {
-            Log.d(TAG, "bterase: " + text);
+        if (id == R.id.button_erase) {
             if (!TextUtils.isEmpty(text)) {
                 text = text.substring(0, text.length() - 1);
             }
@@ -81,7 +101,17 @@ public class MainActivity extends AppCompatActivity implements PhoneClient.Conne
     }
 
     private void callTo(String text) {
+        if (TextUtils.isEmpty(text) || !mRegistration) return;
 
+        startOutgoingCall("sip:" + text + "@" + DOMAIN);
+    }
+
+    private void startOutgoingCall(String remoteUri) {
+        CallActivity.startCall(this, remoteUri, true);
+    }
+
+    private void startIncomingCall(String remoteUri) {
+        CallActivity.startCall(this, remoteUri, false);
     }
 
     @Override
@@ -90,6 +120,20 @@ public class MainActivity extends AppCompatActivity implements PhoneClient.Conne
         mPhoneClient.setConnectionListener(this);
         mPhoneClient.setEventListener(this);
         mPhoneClient.connect(this);
+
+        Dexter.withActivity(this)
+                .withPermission(Manifest.permission.RECORD_AUDIO)
+                .withListener(new PermissionListener() {
+                    @Override public void onPermissionGranted(PermissionGrantedResponse response) {
+
+                    }
+                    @Override public void onPermissionDenied(PermissionDeniedResponse response) {
+                        finish();
+                    }
+                    @Override public void onPermissionRationaleShouldBeShown(PermissionRequest permission, PermissionToken token) {
+
+                    }
+                }).check();
     }
 
     @Override
@@ -128,13 +172,14 @@ public class MainActivity extends AppCompatActivity implements PhoneClient.Conne
     @Override
     public void connected() {
         Log.d(TAG, "connected");
-        mPhoneClient.register("sip:" + mCreds.first + "@sip.zadarma.com", "sip:sip.zadarma.com",
-                "sip:sip.zadarma.com:5060", mCreds.first, mCreds.second);
+        mPhoneClient.register("sip:" + mCreds.first + "@" + DOMAIN, "sip:" + DOMAIN,
+                "sip:" + DOMAIN + ":" + SIP_PORT, mCreds.first, mCreds.second);
     }
 
     @Override
     public void disconnected() {
         Log.d(TAG, "disconnected");
+        mPhoneClient.connect(this);
     }
 
     @Override
@@ -159,10 +204,11 @@ public class MainActivity extends AppCompatActivity implements PhoneClient.Conne
     @Override
     public void onIncomingCall(String remoteUri) {
         Log.d(TAG, "onIncomingCall: " + remoteUri);
+        startIncomingCall(remoteUri);
     }
 
     @Override
     public void onCallState(String remoteUri, int state, int role) {
-        Log.d(TAG, "remoteUri: " + remoteUri + ", state: " + state + ", role: " + role);
+        // do nothing
     }
 }

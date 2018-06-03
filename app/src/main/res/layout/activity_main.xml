@@ -40,7 +40,7 @@
         <Button
             android:layout_width="50dp"
             android:layout_height="match_parent"
-            android:id="@+id/btErase"
+            android:id="@+id/button_erase"
             android:padding="8dp"
             android:textSize="26dp"
             android:text="&lt;"

@@ -122,13 +122,6 @@ public class PhoneApp {
             e.printStackTrace();
         }
 
-        try {
-            ep.transportCreate(pjsip_transport_type_e.PJSIP_TRANSPORT_TCP,
-                    sipTpConfig);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-
         /* Set SIP port back to default for JSON saved config */
         sipTpConfig.setPort(SIP_PORT);
 
